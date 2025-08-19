@@ -1,0 +1,68 @@
+#root {
+  background-color: #1a1f1c;
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  height: 100vh;
+  width: 200vh;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.login-container {
+  background-color: #2c352c;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px #00ff44;
+  width: 320px;
+  text-align: center;
+  color: #e0f0d4;
+}
+
+.img-logo {
+  align-items: left;
+  width: 5%;
+  height: 5%;
+}
+
+.login-container h1 {
+  margin-bottom: 24px;
+  color: #00ff44;
+}
+
+.input-container {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: #1f2921;
+  color: #fff;
+}
+
+input:focus {
+  outline: 2px solid #00ff44;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #00ff44;
+  color: #1a1f1c;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #00cc36;
+}
+
+.error-msg {
+  color: #ff4444;
+  margin-top: 10px;
+  font-size: 0.9em;
+}
