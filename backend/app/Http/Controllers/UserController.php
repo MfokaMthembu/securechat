@@ -89,30 +89,33 @@ class UserController extends Controller
     public function getUsers()
     {
         try {
-            $users = User::leftJoin('user_details', 'users.id', '=', 'user_details.user_id')
-                ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
-                ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
-                ->select(
-                    'users.id',
-                    'users.username',
-                    'user_details.first_name',
-                    'user_details.last_name',
-                    'user_details.email',
-                    'user_details.unit',
-                    'user_details.rank',
-                    'users.status',
-                    'roles.name as role_name',
-                    'users.created_at'
-                )
-                ->orderBy('users.created_at', 'desc')
-                ->get();
+            $users = User::with(['userDetail', 'roles'])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'username' => $user->username,
+                        'status' => $user->status,
+                        'created_at' => $user->created_at,
+                        'userDetail' => $user->userDetail ? [
+                            'first_name' => $user->userDetail->first_name,
+                            'last_name' => $user->userDetail->last_name,
+                            'email' => $user->userDetail->email,
+                            'unit' => $user->userDetail->unit,
+                            'rank' => $user->userDetail->rank,
+                        ] : null,
+                        'roles' => $user->roles->map(function ($role) {
+                            return ['name' => $role->name];
+                        })->toArray()
+                    ];
+                });
 
             return response()->json([
                 'success' => true,
                 'data' => $users,
                 'message' => 'Users retrieved successfully'
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -121,7 +124,6 @@ class UserController extends Controller
             ], 500);
         }
     }
-
 
     /**
      * Update user details & generated credentials.
@@ -146,7 +148,6 @@ class UserController extends Controller
                 'address' => 'nullable|string|max:500',
                 'status' => 'sometimes|required|in:active,inactive,suspended',
                 'role' => 'sometimes|required|string|in:super-admin,sub-admin,regular-user',
-                'regenerate_password' => 'sometimes|boolean'
             ]);
 
             $result = DB::transaction(function () use ($user, $validated, $request) {
@@ -164,27 +165,14 @@ class UserController extends Controller
                     $firstName = $validated['first_name'] ?? $user->userDetail->first_name;
                     $lastName = $validated['last_name'] ?? $user->userDetail->last_name;
 
-                    // No uniqueness check — usernames can be repeated
-                    $username = strtolower($firstName . '.' . $lastName);
+                    $username = strtolower((string)$firstName . '.' . (string)$lastName);
 
                     $updateData['username'] = $username;
-                    $newPassword = $firstName . '@123';
+                    $newPassword = (string)$firstName . '@123';
                     $updateData['password'] = Hash::make($newPassword);
 
                     $newCredentials = [
                         'username' => $username,
-                        'password' => $newPassword
-                    ];
-                }
-
-                // Accommodates changes to password without name change
-                if ($request->has('regenerate_password') && $validated['regenerate_password']) {
-                    $firstName = $validated['first_name'] ?? $user->userDetail->first_name;
-                    $newPassword = $firstName . '@123';
-                    $updateData['password'] = Hash::make($newPassword);
-
-                    $newCredentials = [
-                        'username' => $user->username,
                         'password' => $newPassword
                     ];
                 }
@@ -195,7 +183,7 @@ class UserController extends Controller
                 }
 
                 // Update user details
-                $userDetailFields = ['first_name', 'last_name', 'email', 'dob', 'rank', 'address'];
+                $userDetailFields = ['first_name', 'last_name', 'email', 'unit', 'dob', 'rank', 'address'];
                 foreach ($userDetailFields as $field) {
                     if (isset($validated[$field])) {
                         $userDetailData[$field] = $validated[$field];
@@ -283,6 +271,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'search' => 'required|string|min:2',
             'search_type' => 'sometimes|string|in:all,name,email,unit,rank,id',
+            'per_page' => 'sometimes|integer|min:1'
         ]);
 
         try {
@@ -297,7 +286,6 @@ class UserController extends Controller
                     if (is_numeric($searchTerm)) {
                         $query->where('id', $searchTerm);
                     } else {
-                        // Return empty result for non-numeric ID search
                         return response()->json([
                             'success' => true,
                             'data' => [],
@@ -309,7 +297,7 @@ class UserController extends Controller
                 case 'name':
                     $query->whereHas('userDetail', function ($q) use ($searchTerm) {
                         $q->where('first_name', 'LIKE', "%{$searchTerm}%")
-                          ->orWhere('last_name', 'LIKE', "%{$searchTerm}%");
+                        ->orWhere('last_name', 'LIKE', "%{$searchTerm}%");
                     });
                     break;
 
@@ -324,6 +312,7 @@ class UserController extends Controller
                         $q->where('rank', 'LIKE', "%{$searchTerm}%");
                     });
                     break;
+
                 case 'unit':
                     $query->whereHas('userDetail', function ($q) use ($searchTerm) {
                         $q->where('unit', 'LIKE', "%{$searchTerm}%");
@@ -332,26 +321,44 @@ class UserController extends Controller
 
                 default: // 'all'
                     $query->where(function ($q) use ($searchTerm) {
-                        // Search in user table
                         $q->where('username', 'LIKE', "%{$searchTerm}%")
-                          ->orWhere('id', is_numeric($searchTerm) ? $searchTerm : 0)
-                          // Search in user details via name, surname, email, rank, and unit
-                          ->orWhereHas('userDetail', function ($subQ) use ($searchTerm) {
-                              $subQ->where('first_name', 'LIKE', "%{$searchTerm}%")
-                                   ->orWhere('last_name', 'LIKE', "%{$searchTerm}%")
-                                   ->orWhere('email', 'LIKE', "%{$searchTerm}%")
-                                   ->orWhere('rank', 'LIKE', "%{$searchTerm}%")
-                                   ->orWhere('unit', 'LIKE', "%{$searchTerm}%");
-                          });
+                        ->orWhere('id', is_numeric($searchTerm) ? $searchTerm : 0)
+                        ->orWhereHas('userDetail', function ($subQ) use ($searchTerm) {
+                            $subQ->where('first_name', 'LIKE', "%{$searchTerm}%")
+                                ->orWhere('last_name', 'LIKE', "%{$searchTerm}%")
+                                ->orWhere('email', 'LIKE', "%{$searchTerm}%")
+                                ->orWhere('rank', 'LIKE', "%{$searchTerm}%")
+                                ->orWhere('unit', 'LIKE', "%{$searchTerm}%");
+                        });
                     });
                     break;
             }
 
-            $results = $query->orderBy('created_at', 'desc')->paginate($perPage);
+            $results = $query->orderBy('created_at', 'desc')->get();
+
+            // Transform the data with necessary fields to match the frontend
+            $transformedData = $results->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'status' => $user->status,
+                    'created_at' => $user->created_at,
+                    'userDetail' => $user->userDetail ? [
+                        'first_name' => $user->userDetail->first_name,
+                        'last_name' => $user->userDetail->last_name,
+                        'email' => $user->userDetail->email,
+                        'unit' => $user->userDetail->unit,
+                        'rank' => $user->userDetail->rank,
+                    ] : null,
+                    'roles' => $user->roles->map(function ($role) {
+                        return ['name' => $role->name];
+                    })
+                ];
+            });
 
             return response()->json([
                 'success' => true,
-                'data' => $results,
+                'data' => $transformedData,
                 'message' => $results->count() > 0 ? 'Users found successfully' : 'No users found',
                 'search_term' => $searchTerm,
                 'search_type' => $searchType
@@ -364,7 +371,7 @@ class UserController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
-    }
+    }    
 
     /**
      * Bulk operations for users
@@ -458,6 +465,54 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve statistics',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all users from the DB except sysadmin and logged in user.
+     */
+    public function getPersonnel()
+    {
+        try {
+            // Get the logged-in user's ID
+            $currentUserId = auth()->id();
+            
+            $users = User::with(['userDetail', 'roles'])
+                // Exclude both sysadmin and logged-in user
+                ->where('username', '!=', 'sysadmin') 
+                ->where('id', '!=', $currentUserId)   
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'username' => $user->username,
+                        'status' => $user->status,
+                        'created_at' => $user->created_at,
+                        'userDetail' => $user->userDetail ? [
+                            'first_name' => $user->userDetail->first_name,
+                            'last_name' => $user->userDetail->last_name,
+                            'email' => $user->userDetail->email,
+                            'unit' => $user->userDetail->unit,
+                            'rank' => $user->userDetail->rank,
+                        ] : null,
+                        'roles' => $user->roles->map(function ($role) {
+                            return ['name' => $role->name];
+                        })->toArray()
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $users,
+                'message' => 'Users retrieved successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve users',
                 'error' => $e->getMessage()
             ], 500);
         }

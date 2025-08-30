@@ -11,32 +11,35 @@ function App() {
 
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
+  e.preventDefault();
+  setError('');
 
-    try {
-      // CSRF token
-      await axiosInstance.get('/sanctum/csrf-cookie');
+  try {
+    // Step 1: Get CSRF token from Laravel Sanctum
+    await axiosInstance.get('/sanctum/csrf-cookie');
 
-      // Login request
-      const response = await axiosInstance.post('/api/login', {
-        username,
-        password
-      });
+    // Step 2: Send login request
+    const response = await axiosInstance.post('/api/login', {
+      username,
+      password
+    });
 
-      const { token, dashboard } = response.data;
+    const { token, dashboard } = response.data;
 
-      // Set token for axios
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    // Step 3: Save token in localStorage (key matches axios.js)
+    localStorage.setItem("authToken", token);
 
-      // Redirect to role-based dashboard
-      navigate(dashboard);
+    // (Optional) also set it immediately for this session
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-    } catch (error) {
-      console.error('Login error:', error.response?.data || error.message);
-      setError(error.response?.data?.message || 'Login failed');
-    }
-  };
+    // Step 4: Redirect to role-based dashboard
+    navigate(dashboard);
+
+  } catch (error) {
+    console.error('Login error:', error.response?.data || error.message);
+    setError(error.response?.data?.message || 'Login failed');
+  }
+};
 
   return (
     <div className="login-container">

@@ -13,14 +13,13 @@ return new class extends Migration
     {
         Schema::create('group_users', function (Blueprint $table) {
             $table->id()->unique()->autoIncrement();
-            $table->foreignId('group_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('group_id')->constrained('unit_groups')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->enum('role', ['commander', 'member'])->default('member');
             $table->timestamp('joined_at')->nullable();
             $table->timestamps();
+
             // Prevents duplicating records of group members
             $table->unique(['group_id', 'user_id']);
-            
         });
     }
 

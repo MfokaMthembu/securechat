@@ -1,0 +1,71 @@
+.alerts-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.alert-card {
+  background-color: #1B5E20; /* deep green */
+  color: #fff;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.alert-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+}
+
+.alert-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.alert-icon {
+  font-size: 1.4rem;
+  margin-right: 0.5rem;
+  color: #FFD700; /* gold */
+}
+
+.alert-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #FFD700; /* gold */
+}
+
+.alert-message {
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.alert-location {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #FFD700;
+  text-decoration: none;
+}
+
+.alert-location:hover {
+  text-decoration: underline;
+}
+
+.alert-attachments a {
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+  color: #fff;
+  text-decoration: underline;
+}
+
+.alert-footer {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}

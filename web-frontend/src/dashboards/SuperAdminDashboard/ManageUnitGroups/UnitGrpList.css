@@ -8,6 +8,14 @@
   flex-direction: column;
 }
 
+table {
+  width: 100%;
+  min-width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; 
+}
+
+
 .table-wrapper {
   flex: 1 1 auto;             
   overflow-y: auto;           
@@ -25,7 +33,11 @@
   border: 1px solid #ddd;
   padding: 10px;
   text-align: left;
-  white-space: normal;        
+  white-space: normal;  
+  word-wrap: break-word;
+  white-space: nowrap;
+  text-align: center;
+  overflow: hidden;      
 }
 
 .user-list-header {
@@ -41,6 +53,23 @@
 }
 
 /* Action buttons */
+.actions-cell {
+  display: flex;
+  justify-content: center;
+  gap: 8px; /* spacing between buttons */
+  flex-wrap: wrap; /* buttons wrap on smaller screens */
+}
+
+/* Make buttons fit */
+.actions-cell button {
+  flex: 1 1 auto;
+  min-width: 70px;
+  max-width: 100px;
+  padding: 6px 10px;
+  font-size: 14px;
+  text-overflow: ellipsis;
+}
+
 .button-btn-edit {
   background-color: #FFD700;
   color: #000;
@@ -68,4 +97,98 @@
   width: 18px;
   height: 18px;
   cursor: pointer;
+}
+
+/* Group Selection Styles */
+.selected-group-row {
+    background-color: #e3f2fd !important;
+    border-left: 4px solid #2196f3;
+    font-weight: 500;
+}
+
+.selected-group-row td {
+    background-color: #e3f2fd !important;
+}
+
+.selectable-row {
+    transition: background-color 0.2s ease;
+}
+
+.selectable-row:hover {
+    background-color: #f5f5f5;
+}
+
+.selected-group-row:hover {
+    background-color: #d1e7fd !important;
+}
+
+.selected-group-row:hover td {
+    background-color: #d1e7fd !important;
+}
+
+.selected-indicator {
+    color: #2196f3;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+.select-box {
+    cursor: pointer;
+    transform: scale(1.2);
+}
+
+.select-box:checked {
+    accent-color: #2196f3;
+}
+
+/* Status badge styling for groups */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.status-badge.active {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-badge.inactive {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.status-badge.unknown {
+    background-color: #e2e3e5;
+    color: #383d41;
+    border: 1px solid #d6d8db;
+}
+
+/* Loading and error states */
+.loading-state, .error-state {
+    padding: 40px 20px;
+    text-align: center;
+    font-size: 1.1em;
+}
+
+.error-state {
+    color: #dc3545;
+}
+
+.error-state button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.error-state button:hover {
+    background-color: #c82333;
 }

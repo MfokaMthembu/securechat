@@ -6,13 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class UnitGroup extends Model
 {
-    protected $fillable = ['grp_name', 'grp_description'];
+    protected $fillable = ['grp_name', 'grp_description', 'status'];
 
     public function members()
     {
-        return $this->belongsToMany(User::class, 'group_users')
-                    ->withPivot('role', 'joined_at')
-                    ->withTimestamps();
+        return $this->belongsToMany(User::class, 
+                'group_users', 
+                'group_id', 
+                'user_id')
+                ->withPivot('joined_at')
+                ->withTimestamps();
     }
 
     public function messages()
@@ -24,5 +27,4 @@ class UnitGroup extends Model
     {
         return $this->status === 'open';
     }
-
 }

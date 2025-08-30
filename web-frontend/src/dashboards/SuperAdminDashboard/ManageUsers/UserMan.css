@@ -35,7 +35,7 @@
 }
 
 .search-container button:hover {
-  background-color: #145214;
+  background-color: #cef010;
 }
 
 
@@ -43,8 +43,8 @@
 
 /* Add User Button Styles */
 .add-user-container {
-    padding: 20px;
-    margin: 20px 0;
+    padding: 15px;
+    margin: 1px 0;
 }
 
 .add-user-btn {
@@ -152,4 +152,92 @@
 .close-btn:hover {
     background-color: #f5f5f5;
     color: #333;
+}
+
+/* Assignment Modal Specific Styles */
+.assignment-modal {
+    max-width: 90vw;
+    max-height: 90vh;
+    width: auto;
+    min-width: 800px;
+}
+
+.assignment-modal .modal-body {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.selected-user-info {
+    background-color: #e8f5e8;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    border-left: 4px solid #28a745;
+}
+
+.selected-user-info p {
+    margin: 0;
+    color: #155724;
+    font-weight: 500;
+}
+
+.unit-group-selection h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-top: 20px;
+    border-top: 1px solid #dee2e6;
+    margin-top: 20px;
+}
+
+.submit-assignment-btn, .cancel-btn {
+    transition: all 0.3s ease;
+    font-weight: 500;
+    border-radius: 4px !important;
+}
+
+.submit-assignment-btn:hover:not(:disabled) {
+    background-color: #218838 !important;
+    transform: translateY(-1px);
+}
+
+.cancel-btn:hover {
+    background-color: #c82333 !important;
+    transform: translateY(-1px);
+}
+
+/* Responsive adjustments for assignment modal */
+@media (max-width: 1024px) {
+    .assignment-modal {
+        min-width: 95vw;
+        margin: 2.5vh auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .assignment-modal {
+        min-width: 98vw;
+        margin: 1vh auto;
+    }
+    
+    .assignment-modal .modal-body {
+        padding: 15px;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .submit-assignment-btn, .cancel-btn {
+        width: 100%;
+        margin: 0 !important;
+    }
 }

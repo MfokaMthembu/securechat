@@ -7,78 +7,101 @@ import './UnitGrp.css';
 import UnitGrpList from './UnitGrpList';
 
 function UnitGrpManagement() {
-    // navigation hook to handle routing between pages
     const navigate = useNavigate();
-    
-    // function to handle user management navigation
-    const handleManageUsers = () => {
-        navigate("/superadmin/manage-users");
-    };
 
-    const handleManageGroupChats = () => {
-        navigate("/superadmin/manage-group-chats");
-    };
-
-    // state to manage modal (UnitGrpForm) visibility for adding new users
     const [isModalOpen, setIsModalOpen] = useState(false);
-    // functions to open and close the modal
-    const openAddGrpModal = () => setIsModalOpen(true);
-    const closeAddGrpModal = () => setIsModalOpen(false);
+    const [editingGroups, setEditingGroups] = useState(null);
+    const [groups, setGroups] = useState([]);
 
-    // function to handle group creation
-    const handleCreateGroup = async (data) => {
+    const openModal = () => setIsModalOpen(true);
+    const closeModal = () => {
+        setEditingGroups(null);
+        setIsModalOpen(false);
+    };
+
+    // function to fetch groups from the database
+    const fetchUnitGroups = () => {
+        axiosInstance.get('/api/superadmin/get-groups')
+            .then(res => setGroups(res.data.data || []))
+            .catch(err => console.error(err.response?.data || err.message));
+    };
+
+    useEffect(() => { fetchUnitGroups(); }, []);
+
+    // function to handle unit group creation or update
+    const handleSubmitGroup = async (data) => {
         try {
-            await axiosInstance.post('/api/superadmin/create-group', data);
-            alert('Unit Group created successfully');
-            closeAddGrpModal();
-        } catch (error) {
-            console.error(error.response?.data || error.message);
-            alert('Failed to create group');
+            if (editingGroups) {
+                await axiosInstance.put(`/api/superadmin/update-group/${editingGroups.id}`, data);
+                alert('Group updated successfully');
+            } else {
+                await axiosInstance.post('/api/superadmin/create-group', data);
+                alert('Group created successfully');
+            }
+            closeModal();
+            fetchUnitGroups();
+        } catch (err) {
+            console.error(err.response?.data || err.message);
+            alert(editingUser ? 'Failed to update group' : 'Failed to create group');
         }
     };
 
-    // function to fetch users from the server
-    const [unit_groups, setGroups] = useState([]);
-
-    function fetchUnitGroups() {
-        axiosInstance.get('/api/superadmin/groups')
-        .then(function(res) {
-            setGroups(res.data.data || []);
-        })
-        .catch(function(err) {
-            console.error('Error fetching groups:', err.response?.data || err.message);
-        });
-    }
-
-
-    // function to handle update group
-    const handleUpdateGroup = async (data) => {
-        try {
-            await axiosInstance.post('/api/superadmin/update-group', data);
-            alert('Unit Group updated successfully');
-        } catch (error) {
-            console.error(error.response?.data || error.message);
-            alert('Failed to update group');
-        }
-
+    // function to handle adding a new group
+    const handleAddGroup = () => {
+        // Reset editing groups for new creation
+        setEditingGroups(null); 
+        openModal();
     };
 
-    // function to handle group deletion
-    function handleDelete(id) {
+    // function to handle groups editing
+    const handleEdit = (groups) => {
+        setEditingGroups(groups);
+        openModal();
+    };
+
+    // function to handle groups deletion
+    const handleDelete = (id) => {
         if (!window.confirm('Are you sure you want to delete this group?')) return;
 
         axiosInstance.delete(`/api/superadmin/delete-group/${id}`)
-        .then(function() {
-            fetchUnitGroups();
-        })
-        .catch(function(err) {
-            console.error('Delete failed:');
-        });
-    }
+            .then(() => fetchUnitGroups())
+            .catch(err => console.error(err.response?.data || err.message));
+    };
 
-    useEffect(function() {
-        fetchUnitGroups();
-    }, []);
+    // function to handle search
+    const [searchTerm, setSearchTerm] = useState("");
+    const handleSearch = async () => {
+        if (!searchTerm || searchTerm.length < 2) {
+            fetchUnitGroups();
+            return;
+        }
+
+        try {
+            const response = await axiosInstance.get('/api/superadmin/search-group', {
+            params: {
+                search: searchTerm,
+            }
+            });
+
+            console.log("Search response:", response.data);
+            setGroups(response.data.data || []);
+        } catch (err) {
+            console.error("Search failed:", err.response?.data || err.message);
+            setGroups([]);
+        }
+    };
+    
+    // function to handle logout
+    const handleLogOut = async () => {
+        try {
+            await axiosInstance.post(`/api/logout`);
+            console.log(`user logged out successfully`);
+            navigate('/');
+        } catch (err) {
+            console.error(err.response?.data || err.message);
+            alert('Failed to logout');
+        }
+    }
 
     return (
         <div className="root">
@@ -87,11 +110,10 @@ function UnitGrpManagement() {
                 <aside className="sidebar">
                     <h2>System Admin</h2>
                     <nav>
-                        <a href="#" onClick={handleManageUsers}>Manage Users</a>
-                        <a href="#">Assign Commanders</a>
+                        <a href="#" onClick={() => navigate("/superadmin/manage-users")}>Manage Users</a>
                         <a href="#">Revoke Roles</a>
-                        <a href="#" onClick={handleManageGroupChats}>Manage Group Chats</a>
-                        <a href="#">Logout</a>
+                        <a href="#" onClick={() => navigate("/superadmin/manage-group-chats")}>Manage Group Chats</a>
+                        <a href="#" onClick={handleLogOut}>Logout</a>
                     </nav>
                 </aside>
 
@@ -100,13 +122,18 @@ function UnitGrpManagement() {
                     <div className="header-container"> 
                         <h1 className="headings"> Manage Groups </h1>
                         <div className="search-container">
-                            <input  type="text" id="search-box" placeholder="Search by group_id or name"/>
-                            <button >Search</button>
+                            <input  type="text" id="search-box" 
+                                placeholder="Search..."  
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)} 
+                            />
+                            <button onClick={handleSearch}>Search</button>
                         </div>
                     </div>    
+
                     {/* Add Group Button */}
                     <div className="add-grp-container">
-                        <button className="add-grp-btn" onClick={openAddGrpModal}>
+                        <button className="add-grp-btn" onClick={handleAddGroup}>
                             <span className="icon">👤👤</span>
                             <span>Add New Unit Group</span>
                         </button>
@@ -117,13 +144,14 @@ function UnitGrpManagement() {
                         <div className="modal" style={{ display: 'block' }}>
                             <div className="modal-content">
                                 <div className="modal-header">
-                                    <h2 className="modal-title">Add New Unit Group</h2>
-                                    <button className="close-btn" onClick={closeAddGrpModal}>&times;</button>
+                                    <h2 className="modal-title">{editingGroups ? 'Edit Group' : 'Add New Group'}</h2>
+                                    <button className="close-btn" onClick={closeModal}>&times;</button>
                                 </div>
                                 <div className="modal-body">
                                     <UnitGrpForm 
-                                        onClose={closeAddGrpModal} 
-                                        onSubmit={handleCreateGroup} 
+                                        onClose={closeModal} 
+                                        onSubmit={handleSubmitGroup} 
+                                        groups={editingGroups}
                                     />
                                 </div>
                             </div>
@@ -132,8 +160,8 @@ function UnitGrpManagement() {
                     {/* Unit Group List */}
                     <div>
                         <UnitGrpList 
-                            unit_groups={unit_groups}
-                            onEdit={handleUpdateGroup} 
+                            groups={groups}
+                            onEdit={handleEdit} 
                             onDelete={handleDelete}
                         />
                     </div>

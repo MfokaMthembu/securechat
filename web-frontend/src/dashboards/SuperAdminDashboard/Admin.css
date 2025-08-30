@@ -1,13 +1,23 @@
+
 .root {
   margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  max-width: 100%;
   font-family: Arial, sans-serif;
   background-color: #f4f6f8;
   width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
+/* Dashboard layout */
 .dashboard {
   display: flex;
+  flex: 1;
   min-height: 100vh;
+  flex-wrap: wrap; /* allows stacking on smaller screens */
 }
 
 /* Sidebar */
@@ -16,6 +26,7 @@
   color: white;
   padding: 20px;
   width: 220px;
+  flex-shrink: 0;
 }
 
 .sidebar h2 {
@@ -43,6 +54,7 @@
 .main-content {
   flex: 1;
   padding: 20px;
+  min-width: 0; /* fixes flexbox overflow issue */
 }
 
 .main-content h1 {
@@ -79,4 +91,34 @@
 
 .card p {
   color: #555;
+}
+
+/* --- Media query Responsiveness --- */
+
+/* Tablets and below */
+@media (max-width: 768px) {
+  .dashboard {
+    flex-direction: column; /* stack sidebar above content */
+  }
+
+  .sidebar {
+    width: 100%;
+    text-align: center;
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+}
+
+/* Phones */
+@media (max-width: 480px) {
+  .sidebar nav a {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .card-container {
+    grid-template-columns: 1fr; /* one card per row */
+  }
 }

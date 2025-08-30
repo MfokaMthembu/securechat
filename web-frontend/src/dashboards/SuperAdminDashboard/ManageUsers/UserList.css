@@ -6,41 +6,73 @@
   max-height: 500px;          
   display: flex;
   flex-direction: column;
+  overflow: auto;
 }
 
 .table-wrapper {
   flex: 1 1 auto;             
-  overflow-y: auto;           
+  overflow-y: auto;      
   overflow-x: auto;           
   min-height: 0;              
 }
 
+/* Table styling */
 .user-list {
-  width: max-content;
+  width: 100%;
   min-width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
-.user-list th, td {
+.user-list th, 
+.user-list td {
   border: 1px solid #ddd;
   padding: 10px;
   text-align: left;
-  white-space: normal;        
+  white-space: nowrap; /* prevents breaking & keeps table aligned */
+  word-wrap: break-word;
+  white-space: nowrap;
+  text-align: center;
+  overflow: hidden;
 }
 
-.user-list-header {
+
+/* Sticky header */
+.user-list th {
   background-color: #1B5E20;
   color: white;
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 2; 
 }
 
-.user-list-body {
+.user-list-body tr:nth-child(even) {
+  background-color: #f1f8f4;
+}
+
+.user-list-body tr:nth-child(odd) {
   background-color: #e8f5e9;
 }
 
 /* Action buttons */
+
+.actions-cell {
+  display: flex;
+  justify-content: center;
+  gap: 8px; 
+  flex-wrap: wrap;
+}
+
+/* Make buttons fit */
+.actions-cell button {
+  flex: 1 1 auto;
+  min-width: 70px;
+  max-width: 100px;
+  padding: 6px 10px;
+  font-size: 14px;
+  text-overflow: ellipsis;
+}
+
 .button-btn-edit {
   background-color: #FFD700;
   color: #000;
@@ -50,7 +82,6 @@
   cursor: pointer;
   margin-right: 5px;
 }
-
 .button-btn-edit:hover { background-color: #FFC107; }
 
 .button-btn-delete {
@@ -61,11 +92,118 @@
   padding: 5px 8px;
   cursor: pointer;
 }
-
 .button-btn-delete:hover { background-color: #B71C1C; }
 
 .select-box {
   width: 18px;
   height: 18px;
   cursor: pointer;
+}
+
+/* --- MEDIA QUERIES --- */
+
+/* Tablets */
+@media (max-width: 768px) {
+  .table-wrapper {
+    overflow-x: auto; /* allow sideways scroll */
+  }
+
+  .user-list th,
+  .user-list td {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .button-btn-edit,
+  .button-btn-delete {
+    padding: 4px 6px;
+    font-size: 12px;
+  }
+}
+
+/* Phones */
+@media (max-width: 480px) {
+  .user-list {
+    font-size: 12px;
+  }
+
+  .user-list th,
+  .user-list td {
+    padding: 6px;
+    white-space: normal; /* allow text wrap on very small screens */
+  }
+
+  .button-btn-edit,
+  .button-btn-delete {
+    font-size: 11px;
+    padding: 3px 5px;
+  }
+}
+
+@media (max-width: 768px) {
+  table {
+    font-size: 12px;
+  }
+  .actions-cell {
+    flex-direction: column; /* stack buttons on small screens */
+    align-items: center;
+  }
+  .actions-cell button {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+}
+
+/* User Selection Styles */
+.selected-user-row {
+    background-color: #e8f5e8 !important;
+    border-left: 4px solid #28a745;
+    font-weight: 500;
+}
+
+.selected-user-row td {
+    background-color: #e8f5e8 !important;
+}
+
+.select-box {
+    cursor: pointer;
+    transform: scale(1.2);
+}
+
+.select-box:checked {
+    accent-color: #28a745;
+}
+
+/* Status badge styling */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.status-badge.active {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-badge.inactive {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Hover effects for selectable rows */
+.user-list tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.selected-user-row:hover {
+    background-color: #d4f4d4 !important;
+}
+
+.selected-user-row:hover td {
+    background-color: #d4f4d4 !important;
 }

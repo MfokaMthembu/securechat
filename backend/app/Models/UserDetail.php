@@ -20,6 +20,8 @@ class UserDetail extends Model
         'address',
     ];
 
+    protected $hidden = ['dob', 'address'];
+
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './UserForm.css';
 
-export default function UserForm({ onClose, onSubmit }) {
+export default function UserForm({ onClose, onSubmit, user }) {
     const [formData, setFormData] = useState({
         first_name: '',
         last_name: '',
@@ -10,47 +10,65 @@ export default function UserForm({ onClose, onSubmit }) {
         unit: '',
         rank: '',
         address: '',
-        role: ''
+        role: '',
+        status: 'active',
     });
 
+    // Pre-fills fields if editing user details
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                first_name: user.userDetail?.first_name || '',
+                last_name: user.userDetail?.last_name || '',
+                email: user.userDetail?.email || '',
+                dob: user.userDetail?.dob || '',
+                unit: user.userDetail?.unit || '',
+                rank: user.userDetail?.rank || '',
+                address: user.userDetail?.address || '',
+                role: user.roles?.[0]?.name || 'regular-user',
+                status: user.status || 'active',
+            });
+        }
+    }, [user]);
+
     const handleChange = (e) => {
-        const { id, value } = e.target;
-        setFormData(prev => ({ ...prev, [id]: value }));
+        const { id, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [id]: type === 'checkbox' ? checked : value
+        }));
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log('Submitting formData:', formData);
-        // Pass data to parent
-        onSubmit(formData); 
-
+        onSubmit(formData);
     };
 
     return (
         <form onSubmit={handleSubmit} id="userForm">
             <div className="form-group">
-                <label className="form-label">First Name *</label>
-                <input className="form-input" type="text" id="first_name" value={formData.first_name} onChange={handleChange} required />
+                <label>First Name *</label>
+                <input type="text" id="first_name" value={formData.first_name} onChange={handleChange} required />
             </div>
 
             <div className="form-group">
-                <label className="form-label">Last Name *</label>
-                <input className="form-input" type="text" id="last_name" value={formData.last_name} onChange={handleChange} required />
+                <label>Last Name *</label>
+                <input type="text" id="last_name" value={formData.last_name} onChange={handleChange} required />
             </div>
 
             <div className="form-group">
-                <label className="form-label" htmlFor="email">Email *</label>
-                <input className='form-input' type="email" id="email" value={formData.email} onChange={handleChange} required />
+                <label>Email *</label>
+                <input type="email" id="email" value={formData.email} onChange={handleChange} required />
             </div>
 
             <div className="form-group">
-                <label className="form-label" htmlFor="dob">Date of Birth *</label>
-                <input className="form-input" type="date" id="dob" value={formData.dob} onChange={handleChange} required />
+                <label>Date of Birth *</label>
+                <input type="date" id="dob" value={formData.dob} onChange={handleChange} required />
             </div>
 
             <div className="form-group">
-                <label className="form-label" htmlFor="unit">Unit *</label>
-                <select id="unit" value={formData.unit} onChange={handleChange} className="form-input" required>
+                <label>Unit *</label>
+                <select id="unit" value={formData.unit} onChange={handleChange} required>
                     <option value="">Select Unit</option>
                     <option value="Signal">Signal</option>
                     <option value="Special-Forces">Special Forces</option>
@@ -61,8 +79,8 @@ export default function UserForm({ onClose, onSubmit }) {
             </div>
 
             <div className="form-group">
-                <label className="form-label" htmlFor="rank">Rank *</label>
-                <select id="rank" value={formData.rank} onChange={handleChange} className="form-input" required>
+                <label>Rank *</label>
+                <select id="rank" value={formData.rank} onChange={handleChange} required>
                     <option value="">Select Rank</option>
                     <option value="Private">Private</option>
                     <option value="Corporal">Corporal</option>
@@ -75,22 +93,25 @@ export default function UserForm({ onClose, onSubmit }) {
             </div>
 
             <div className="form-group">
-                <label className="form-label" htmlFor="address">Address</label>
-                <input type="text" id="address" value={formData.address} onChange={handleChange} className="form-input" />
+                <label>Address</label>
+                <input type="text" id="address" value={formData.address} onChange={handleChange} />
             </div>
 
             <div className="form-group">
-                <label className="form-label" htmlFor="role">Role *</label>
-                <select id="role" value={formData.role} onChange={handleChange} className="form-input" required>
+                <label>Role *</label>
+                <select id="role" value={formData.role} onChange={handleChange} required>
                     <option value="">Select Role</option>
-                    <option value="sub-admin">sub-admin</option>
-                    <option value="regular-user">regular-user</option>
+                    <option value="super-admin">Super Admin</option>
+                    <option value="sub-admin">Sub Admin</option>
+                    <option value="regular-user">Regular User</option>
                 </select>
             </div>
 
             <div className="form-actions">
                 <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-                <button type="submit" className="btn-primary">Add User</button>
+                <button type="submit" className="btn-primary">
+                    {user ? 'Update User' : 'Add User'}
+                </button>
             </div>
         </form>
     );

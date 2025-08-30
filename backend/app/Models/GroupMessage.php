@@ -6,15 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class GroupMessage extends Model
 {
-    protected $fillable = ['group_id', 'user_id', 'message'];
+    protected $fillable = ['grp_message', 'attachments'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     public function group()
     {
-        return $this->belongsTo(UnitGroup::class);
-    }
-
-    public function sender()
-    {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(UnitGroup::class, 'group_id');
     }
 }

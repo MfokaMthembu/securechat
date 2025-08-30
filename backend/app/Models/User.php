@@ -10,40 +10,23 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    /** @use HasApiTokens<\Laravel\Sanctum\HasApiTokens> */
-    /** @use HasRoles<\Spatie\Permission\Traits\HasRoles> */
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
-    use HasApiTokens, Notifiable, HasRoles;
-
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'username',
         'password',
         'status',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    // specify the guard name for Spatie roles and permissions
+    protected $guard_name = 'web';
+
+
     protected function casts(): array
     {
         return [
@@ -52,31 +35,45 @@ class User extends Authenticatable
         ];
     }
 
-    // relationship, a user can have many OTPs
+    // relationship: a user can have many OTPs
     public function otps()
     {    
         return $this->hasMany(Otp::class);
     }
 
-    // relationship, a user has one user detail
+    // relationship: a user has one user detail
     public function userDetail()
     {
         return $this->hasOne(UserDetail::class);
     }
 
-    // relationship, a group has many users
+    // relationship: a user can belong to many groups
     public function groups()
     {
-        return $this->belongsToMany(UnitGroup::class, 'group_users')
-                ->withPivot('role', 'joined_at')
-                ->withTimestamps();
+        return $this->belongsToMany(UnitGroup::class, 'group_users', 'user_id', 'group_id')
+                    ->withPivot('joined_at') 
+                    ->withTimestamps();
     }
 
-    // relationship, a user can send many group messages 
+    // relationship: a user can send many group messages 
     public function groupMessages()
     {
         return $this->hasMany(GroupMessage::class);
     }
 
+    // Check if the user is a commander of a specific group,
+    // if the user has the 'sub-admin' role and is a member
+    // of the specified group.
+    public function isCommanderOf(UnitGroup $group): bool
+    {
+        return $this->hasRole('sub-admin') && $group->members->contains($this->id);
+    }
+
+    // relationship: a alert is sent to all users in the system (belongs to many)
+    public function alerts()
+    {
+        return $this->belongsToMany(Alert::class, 'alert_user')
+                    ->withTimestamps();
+    }
 
 }

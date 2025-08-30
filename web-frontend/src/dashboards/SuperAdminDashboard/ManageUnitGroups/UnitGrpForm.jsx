@@ -1,23 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect} from 'react';
 import './UnitGrpForm.css';
 
-export default function UnitGrpForm({ onClose, onSubmit }) {
+export default function UnitGrpForm({ onClose, onSubmit, groups }) {
     const [formData, setFormData] = useState({
         grp_name: '',
         grp_description: '',
+        status: 'Open',
     });
 
+    // prefills form when udating an existing group
+    useEffect(() => {
+        if (groups) {
+            setFormData({
+                grp_name: groups?.grp_name || '',
+                grp_description: groups.grp_description || '',
+                status: groups.status || 'Open',
+            });
+        }
+    }, [groups]);
+
     const handleChange = (e) => {
-        const { id, value } = e.target;
-        setFormData(prev => ({ ...prev, [id]: value }));
+        const { id, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [id]: type === 'checkbox' ? checked : value
+        }));
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log('Submitting formData:', formData);
-        // Pass data to parent
-        onSubmit(formData); 
-
+        onSubmit(formData);
     };
 
     return (
@@ -34,7 +46,9 @@ export default function UnitGrpForm({ onClose, onSubmit }) {
 
             <div className="form-actions">
                 <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-                <button type="submit" className="btn-primary">Add Unit Group</button>
+                <button type="submit" className="btn-primary">
+                    {groups ? 'Update Group' : 'Add Group'}
+                </button>
             </div>
         </form>
     );

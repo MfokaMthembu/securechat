@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('group_messages', function (Blueprint $table) {
-            $table->id()->unique()->autoIncrement();
-             $table->foreignId('group_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->text('grp_message');
+        Schema::create('alert_user', function (Blueprint $table) {
+            $table->id()->autoIncrement();
+            $table->foreignId('alert_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->boolean('is_read')->default(false);
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('group_messages');
+        Schema::dropIfExists('alert_user');
     }
 };
