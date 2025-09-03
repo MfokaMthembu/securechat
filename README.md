@@ -4,10 +4,12 @@
 This is the MVP for the **LDF's Secure Chat App**, built with:
 
 - **Backend:** Laravel 11 (API only)
-- **Frontend:** React
+- **Frontend:** React.js, Leaflet.js (for location)
 - **Auth & Security:** Laravel Sanctum, Spatie Roles/Permissions
 - **Communication:** Axios (frontend ↔ backend)
 - **Email OTPs:** Brevo (for password reset verification)
+- **Push Notifications:** Firebase Cloud Messaging
+- **Location:** used leaflet.js for visual selection of location or latitude or longitude pulled via browser location
 
 ---
 
